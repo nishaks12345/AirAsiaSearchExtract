@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.jsoup.Jsoup;
 import org.jsoup.helper.StringUtil;
 import org.jsoup.helper.Validate;
@@ -22,8 +23,8 @@ import org.jsoup.select.NodeVisitor;
 	/* FlightDetailsExtract is to extract the search data from AirAsia.com based on the given inputs. 
 	 * This program is to search for AirAsia flights from source to destination both one way and Round Trip. 
 	 * */
-	public class FlightDetailsExtract {
-
+	public class FlightDetailsExtract 
+	{
 		public static final String DELIMS = "[/]";
 		public static final String ONE_WAY="OneWay";
 	    private static final String USER_AGENT = "Mozilla/5.0 (jsoup)";
@@ -59,15 +60,15 @@ import org.jsoup.select.NodeVisitor;
 			
 			/*Generates the search url based on the input parameters */
 			Map<String,List<List<String>>> flightHeaderList  = fetchHeaders(flightSearchResultDoc,outerSelector,spanSelector,divSelector,searchUrl);
-			System.out.println(flightHeaderList);
+			//System.out.println(flightHeaderList);
 			
 			/*To fetch the flight details */
 			Map<String,List<List<String>>> flightMainDataList=  parseDocuments(flightSearchResultDoc,outerSelector,spanSelector,divSelector);
-			System.out.println(flightMainDataList);
+			//System.out.println(flightMainDataList);
 			
 			/*To fetch the lowest available fare details.*/
 			Map<String,List<List<String>>> flightLowFareDataList=  getLowFareDetails(flightSearchResultDoc,outerSelector,spanSelector,divSelector);
-			System.out.println(flightLowFareDataList);
+			//System.out.println(flightLowFareDataList);
 			
 			//To display the requirested data
 			displaySearchData(flightLowFareDataList,flightMainDataList,flightHeaderList,isRoundTrip);	
@@ -77,7 +78,133 @@ import org.jsoup.select.NodeVisitor;
 		
 		public static void displaySearchData(Map<String,List<List<String>>> flightLowFareDataList,Map<String,List<List<String>>> flightMainDataList,Map<String,List<List<String>>> flightHeaderList ,String isRoundTrip)
 		{
+			List<String> departureList=new ArrayList<String>();
+			List<String> returnList=new ArrayList<String>();
+			List<String> selectedList1=new ArrayList<String>();
+			List<String> selectedList2=new ArrayList<String>();
+			List<List<String>> flightDataList11=new ArrayList<List<String>>();
+			List<List<String>> flightDataList22=new ArrayList<List<String>>();
 			
+			//Parsing the header data map
+			for (String key : flightHeaderList.keySet()) 
+			{
+				List<List<String>> headervalue = flightHeaderList.get(key);
+				Iterator itr1=headervalue.iterator();
+				int count=0;
+				while(itr1.hasNext())
+				{
+					count++;
+					if(count==1)
+						departureList=(List<String>) itr1.next();
+					else
+						returnList=(List<String>) itr1.next();
+				}				
+			    
+			}
+			
+			//Parsing the flight and fare data map
+			for (String key : flightMainDataList.keySet()) 
+			{
+				List<List<String>> flightDataList = flightMainDataList.get(key);
+				for (List<String> temp : flightDataList) 
+				{
+					if(key.equalsIgnoreCase("selectedVal_1"))
+					{
+						selectedList1=(List<String>) temp;
+					}
+					else if(key.equalsIgnoreCase("flightData_1"))
+					{
+						flightDataList11=flightDataList;
+					}
+					else if(key.equalsIgnoreCase("selectedVal_2"))
+					{
+						selectedList2=(List<String>)temp;
+					}
+					else if(key.equalsIgnoreCase("flightData_2"))
+					{
+						flightDataList22=flightDataList;
+					}
+				}
+			
+			    
+			}
+
+			//Departure details
+			System.out.println("=========================================================================================================================================================");
+			if(departureList!=null && departureList.size()>0)
+			{
+				try
+				{
+				System.out.println(departureList.get(0) +" from "+departureList.get(1));
+				System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+				if(selectedList1!=null && selectedList1.size()>0 )
+				{
+					System.out.println("Your selected date flight availability ");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					System.out.println("Day : "+selectedList1.get(0) +" | Date : "+selectedList1.get(1)+" | "+selectedList1.get(3)+" |"+" | Price : "+selectedList1.get(4)+" |");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					System.out.println("Flight availability on other near by dates  ");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					if(flightDataList11!=null && flightDataList11.size()>0 )
+					{
+						for (List<String> temp : flightDataList11) 
+						{
+							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" |"+" | Price : "+temp.get(4)+" |");
+						}
+					}
+				}
+				}
+				catch(IndexOutOfBoundsException iob)
+				{
+					System.out.println("Error occured while fetching data from map departureList ."+iob.getMessage());
+				}
+				catch(NullPointerException npe)
+				{
+					System.out.println("Error occured while fetching data from map departureList ."+npe.getMessage());
+				}
+			}
+			System.out.println("=========================================================================================================================================================\n\n");
+			
+			//Return details
+			System.out.println("=========================================================================================================================================================");			
+			if(returnList!=null && returnList.size()>0)
+			{
+				try
+				{
+					
+				System.out.println(returnList.get(0) +" from "+returnList.get(1));
+				System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+				if(selectedList2!=null && selectedList2.size()>0 )
+				{
+					System.out.println("Your selected date flight availability ");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					System.out.println("Day : "+selectedList2.get(0) +" | Date : "+selectedList2.get(1)+" | "+selectedList2.get(3)+" |"+" | Price : "+selectedList2.get(4)+" |");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					System.out.println("Flight availability on other near by dates  ");
+					System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					if(flightDataList22!=null && flightDataList22.size()>0 )
+					{
+						for (List<String> temp : flightDataList22) 
+						{
+							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" |"+" | Price : "+temp.get(4)+" |");
+						}
+					}
+				}
+	
+				}
+				catch(IndexOutOfBoundsException iob)
+				{
+					System.out.println("Error occured while fetching data from map departureList ."+iob.getMessage());
+				}
+				catch(NullPointerException npe)
+				{
+					System.out.println("Error occured while fetching data from map departureList ."+npe.getMessage());
+				}
+			}
+			System.out.println("=========================================================================================================================================================\n\n");
+			
+			
+
 		}
 		//Method to fetch the low fare flight details for the seach criteria.
 		public static Map<String, List<List<String>>> getLowFareDetails(Document searchDoc, String outerSelector,String  spanSelector, String divSelector)
@@ -184,7 +311,7 @@ import org.jsoup.select.NodeVisitor;
 			final String selectedDay =".dayHeaderTodayImage";
 			final String allInFrom =".allInFrom";
 			final String mapKey="flightData_";
-			final String selectedValKey="selectedVal";
+			final String selectedValKey="selectedVal_";
 			
 	            if(searchDoc !=null)
 	            {
