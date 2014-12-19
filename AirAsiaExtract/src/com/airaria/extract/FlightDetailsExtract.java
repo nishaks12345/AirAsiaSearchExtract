@@ -43,7 +43,7 @@ import org.jsoup.select.NodeVisitor;
 			final String destinationStation="COK"; // Station code of Destination Station(Get from http://www.airportcodes.org/).
 			final String leavingDate="12/24/2014"; //Date on which we need to fly from originStation to destinationStation
 			final String arrivalDate="12/29/2014"; //Date on which we need to fly from destinationStation to originStation. In case of one way trip, this will be by default 2 days before the leaving date
-			final String numberOfAdults="2"; //Number of Adults travelling
+			final String numberOfAdults="1"; //Number of Adults travelling
 			final String numberOfChildren="1"; //Number of children travelling
 			final String numberOfInfants="1"; //Number of Infants travelling
 			final String currencyType="default";//INR by Default
@@ -60,23 +60,20 @@ import org.jsoup.select.NodeVisitor;
 			
 			/*Generates the search url based on the input parameters */
 			Map<String,List<List<String>>> flightHeaderList  = fetchHeaders(flightSearchResultDoc,outerSelector,spanSelector,divSelector,searchUrl);
-			//System.out.println(flightHeaderList);
 			
 			/*To fetch the flight details */
 			Map<String,List<List<String>>> flightMainDataList=  parseDocuments(flightSearchResultDoc,outerSelector,spanSelector,divSelector);
-			//System.out.println(flightMainDataList);
 			
 			/*To fetch the lowest available fare details.*/
 			Map<String,List<List<String>>> flightLowFareDataList=  getLowFareDetails(flightSearchResultDoc,outerSelector,spanSelector,divSelector);
-			//System.out.println(flightLowFareDataList);
 			
 			//To display the requirested data
-			displaySearchData(flightLowFareDataList,flightMainDataList,flightHeaderList,isRoundTrip);	
+			displaySearchData(flightLowFareDataList,flightMainDataList,flightHeaderList,isRoundTrip,numberOfAdults, numberOfChildren, numberOfInfants);	
 			
 			
 		}
 		
-		public static void displaySearchData(Map<String,List<List<String>>> flightLowFareDataList,Map<String,List<List<String>>> flightMainDataList,Map<String,List<List<String>>> flightHeaderList ,String isRoundTrip)
+		public static void displaySearchData(Map<String,List<List<String>>> flightLowFareDataList,Map<String,List<List<String>>> flightMainDataList,Map<String,List<List<String>>> flightHeaderList ,String isRoundTrip,String numberOfAdults, String numberOfChildren, String numberOfInfants)
 		{
 			List<String> departureList=new ArrayList<String>();
 			List<String> returnList=new ArrayList<String>();
@@ -84,7 +81,9 @@ import org.jsoup.select.NodeVisitor;
 			List<String> selectedList2=new ArrayList<String>();
 			List<List<String>> flightDataList11=new ArrayList<List<String>>();
 			List<List<String>> flightDataList22=new ArrayList<List<String>>();
-			
+			List<List<String>> rowDataList1=new ArrayList<List<String>>();
+			List<List<String>> rowDataList2=new ArrayList<List<String>>();
+
 			//Parsing the header data map
 			for (String key : flightHeaderList.keySet()) 
 			{
@@ -128,8 +127,9 @@ import org.jsoup.select.NodeVisitor;
 			
 			    
 			}
+			
 
-			//Departure details
+			//Display Departure details
 			System.out.println("=========================================================================================================================================================");
 			if(departureList!=null && departureList.size()>0)
 			{
@@ -149,7 +149,7 @@ import org.jsoup.select.NodeVisitor;
 					{
 						for (List<String> temp : flightDataList11) 
 						{
-							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" |"+" | Price : "+temp.get(4)+" |");
+							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" | Price : "+temp.get(4)+" |");
 						}
 					}
 				}
@@ -162,11 +162,98 @@ import org.jsoup.select.NodeVisitor;
 				{
 					System.out.println("Error occured while fetching data from map departureList ."+npe.getMessage());
 				}
+				System.out.println("=========================================================================================================================================================\n");
+			}			
+			
+			//Departure low fare details
+			//Parsing the flight and fare data map
+			for (String key : flightLowFareDataList.keySet()) 
+			{
+				List<List<String>> lowFareList = flightLowFareDataList.get(key);
+				for (List<String> temp : lowFareList) 
+				{
+					if(key.equalsIgnoreCase("rowData_1"))
+					{
+						rowDataList1=lowFareList;
+					}
+					if(key.equalsIgnoreCase("rowData_2"))
+					{
+						rowDataList2=lowFareList;
+					}
+					
+				}
+				
 			}
-			System.out.println("=========================================================================================================================================================\n\n");
+			if(rowDataList1!=null && rowDataList1.size()>0)
+			{
+				System.out.println("=========================================================================================================================================================\n");
+				System.out.println("Low fare details for the trip");
+				System.out.println("=========================================================================================================================================================");
+
+				try
+				{
+					List<String> tempList =rowDataList1.get(0);
+					int lowFareCount=tempList.size();
+					int count=0;
+					if(tempList!=null &&tempList.size()>0)
+					{
+						String adultVal="";;
+						String childtVal="";
+						String infantVal="";
+						if(count<lowFareCount && tempList.get(0)!=null)
+						{
+						adultVal=tempList.get(0);count++;System.out.print(" | "+adultVal);
+						}
+						if(count<lowFareCount && tempList.get(1)!=null)
+						{
+							childtVal=tempList.get(1);count++;System.out.print("      | "+childtVal);
+						}
+						if(count<lowFareCount && tempList.get(2)!=null)
+						{
+							infantVal=tempList.get(2);System.out.print("        | "+infantVal);
+						}
+					}
+					
+					System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					for (List<String> temp : rowDataList1) 
+					{
+						if(temp!=null && temp.size()>0)
+						{
+							String adultVal="";;
+							String childtVal="";
+							String infantVal="";
+							//System.out.println("\n");
+							if(Integer.parseInt(numberOfAdults)>0 && temp.get(0)!=null && !(temp.get(0).equals("Adult")))
+							{
+								adultVal=temp.get(0);System.out.print("\n | "+adultVal);								
+							}
+							
+							if(Integer.parseInt(numberOfChildren)>0 && temp.get(1)!=null && !(temp.get(1).equals("Kid")))
+							{
+								childtVal=temp.get(1);System.out.print(" | "+childtVal);
+							}
+							if(Integer.parseInt(numberOfInfants)>0  && temp.get(2)!=null && !(temp.get(2).equals("Infant")))
+							{
+								infantVal=temp.get(2);System.out.print(" | "+infantVal);
+							}
+						}
+						
+					}
+					System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------");
+				}				
+				catch(IndexOutOfBoundsException iob)
+				{
+					System.out.println("Error occured while fetching data from map rowDataList1 ."+iob.getMessage());
+				}
+				catch(NullPointerException npe)
+				{
+					System.out.println("Error occured while fetching data from map rowDataList1 ."+npe.getMessage());
+				}
+								
+			}
 			
 			//Return details
-			System.out.println("=========================================================================================================================================================");			
+			System.out.println("\n\n=========================================================================================================================================================");			
 			if(returnList!=null && returnList.size()>0)
 			{
 				try
@@ -186,7 +273,7 @@ import org.jsoup.select.NodeVisitor;
 					{
 						for (List<String> temp : flightDataList22) 
 						{
-							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" |"+" | Price : "+temp.get(4)+" |");
+							System.out.println("Day : "+temp.get(0) +" | Date : "+temp.get(1)+" | "+temp.get(3)+" | Price : "+temp.get(4)+" |");
 						}
 					}
 				}
@@ -194,16 +281,82 @@ import org.jsoup.select.NodeVisitor;
 				}
 				catch(IndexOutOfBoundsException iob)
 				{
-					System.out.println("Error occured while fetching data from map departureList ."+iob.getMessage());
+					System.out.println("Error occured while fetching data from map returnList ."+iob.getMessage());
 				}
 				catch(NullPointerException npe)
 				{
-					System.out.println("Error occured while fetching data from map departureList ."+npe.getMessage());
+					System.out.println("Error occured while fetching data from map returnList ."+npe.getMessage());
 				}
+				System.out.println("=========================================================================================================================================================\n");
+
 			}
-			System.out.println("=========================================================================================================================================================\n\n");
 			
-			
+			if(rowDataList2!=null && rowDataList2.size()>0)
+			{
+				System.out.println("=========================================================================================================================================================\n");
+				System.out.println("Low fare details for the trip");
+				System.out.println("=========================================================================================================================================================");
+
+				try
+				{
+					List<String> tempList =rowDataList2.get(0);
+					int lowFareCount=tempList.size();
+					int count=0;
+					if(tempList!=null &&tempList.size()>0)
+					{
+						String adultVal="";;
+						String childtVal="";
+						String infantVal="";
+						if(count<lowFareCount && tempList.get(0)!=null)
+						{
+						adultVal=tempList.get(0);count++;System.out.print(" | "+adultVal);
+						}
+						if(count<lowFareCount && tempList.get(1)!=null)
+						{
+							childtVal=tempList.get(1);count++;System.out.print("      | "+childtVal);
+						}
+						if(count<lowFareCount && tempList.get(2)!=null)
+						{
+							infantVal=tempList.get(2);System.out.print("        | "+infantVal);
+						}
+					}					
+					
+					System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------");
+					for (List<String> temp : rowDataList1) 
+					{
+						if(temp!=null && temp.size()>0)
+						{
+							String adultVal="";;
+							String childtVal="";
+							String infantVal="";
+							if(Integer.parseInt(numberOfAdults)>0 && temp.get(0)!=null && !(temp.get(0).equals("Adult")))
+							{
+								adultVal=temp.get(0);System.out.print("\n | "+adultVal);								
+							}
+							
+							if(Integer.parseInt(numberOfChildren)>0 && temp.get(1)!=null && !(temp.get(1).equals("Kid")))
+							{
+								childtVal=temp.get(1);System.out.print(" | "+childtVal);
+							}
+							if(Integer.parseInt(numberOfInfants)>0  && temp.get(2)!=null && !(temp.get(2).equals("Infant")))
+							{
+								infantVal=temp.get(2);System.out.print(" | "+infantVal);
+							}
+						}
+						
+					}
+					System.out.println("\n---------------------------------------------------------------------------------------------------------------------------------------------------------");
+				}				
+				catch(IndexOutOfBoundsException iob)
+				{
+					System.out.println("Error occured while fetching data from map rowDataList2 ."+iob.getMessage());
+				}
+				catch(NullPointerException npe)
+				{
+					System.out.println("Error occured while fetching data from map rowDataList2 ."+npe.getMessage());
+				}		
+				
+			}			
 
 		}
 		//Method to fetch the low fare flight details for the seach criteria.
